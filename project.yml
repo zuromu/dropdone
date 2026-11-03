@@ -1,0 +1,52 @@
+name: Dropdone
+options:
+  bundleIdPrefix: com.zuromu
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    GENERATE_INFOPLIST_FILE: YES
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+targets:
+  Dropdone:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/Dropdone
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.zuromu.dropdone
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Dropdone
+        INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright 2026 Ahmad Hoesin. MIT License."
+        ENABLE_HARDENED_RUNTIME: NO
+  DropdoneTests:
+    type: bundle.unit-test
+    platform: macOS
+    # The tests only need the model and the store, so we compile those two
+    # files straight into the test bundle instead of hosting the whole app.
+    sources:
+      - Tests/DropdoneTests
+      - Sources/Dropdone/Item.swift
+      - Sources/Dropdone/Store.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.zuromu.dropdone.tests
+schemes:
+  Dropdone:
+    build:
+      targets:
+        Dropdone: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - DropdoneTests
+    archive:
+      config: Release
