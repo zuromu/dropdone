@@ -8,7 +8,9 @@ struct ItemRow: View {
     @State private var draft = ""
     @FocusState private var isFocused: Bool
 
-    private var isEditing: Bool { editingID == item.id }
+    private var isEditing: Bool {
+        editingID == item.id
+    }
 
     var body: some View {
         HStack(spacing: 10) {
@@ -32,7 +34,9 @@ struct ItemRow: View {
                         isFocused = true
                     }
                     .onChange(of: isFocused) { _, focused in
-                        if !focused { finishEditing() }
+                        if !focused {
+                            finishEditing()
+                        }
                     }
             } else {
                 Text(item.title)
