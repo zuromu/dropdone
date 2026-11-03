@@ -2,12 +2,16 @@ import SwiftUI
 
 struct ContentView: View {
     let store: Store
+    @State private var editingID: Item.ID?
 
     var body: some View {
         VStack(spacing: 0) {
             List {
                 ForEach(store.items) { item in
-                    ItemRow(item: item, store: store)
+                    ItemRow(item: item, store: store, editingID: $editingID)
+                }
+                .onMove { source, destination in
+                    store.move(from: source, to: destination)
                 }
             }
             .listStyle(.plain)
@@ -17,7 +21,7 @@ struct ContentView: View {
 
             HStack {
                 Button {
-                    store.add(title: "New item")
+                    editingID = store.add()
                 } label: {
                     Label("Add", systemImage: "plus")
                 }
