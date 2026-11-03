@@ -9,6 +9,9 @@ struct ContentView: View {
             List {
                 ForEach(store.items) { item in
                     ItemRow(item: item, store: store, editingID: $editingID)
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 3, leading: 10, bottom: 3, trailing: 10))
                 }
                 .onMove { source, destination in
                     store.move(from: source, to: destination)
@@ -16,8 +19,6 @@ struct ContentView: View {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
-
-            Divider()
 
             HStack {
                 Button {
@@ -39,5 +40,6 @@ struct ContentView: View {
             .padding(12)
         }
         .frame(width: 320, height: 420)
+        .background(.clear)
     }
 }

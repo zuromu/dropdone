@@ -45,6 +45,9 @@ struct ItemRow: View {
                     }
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .glassEffect(.regular, in: .rect(cornerRadius: 14))
         .contextMenu {
             Button("Delete", role: .destructive) {
                 store.delete(item.id)
