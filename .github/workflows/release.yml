@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate the Xcode project
+        run: xcodegen
+      - name: Build the app
+        run: |
+          xcodebuild build \
+            -scheme Dropdone \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -derivedDataPath build
+      - name: Zip the app
+        run: |
+          ditto -c -k --keepParent build/Build/Products/Release/Dropdone.app "Dropdone-${GITHUB_REF_NAME}.zip"
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "Dropdone-${GITHUB_REF_NAME}.zip" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes
