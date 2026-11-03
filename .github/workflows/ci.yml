@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: brew install swiftlint swiftformat
+      - name: Check formatting
+        run: swiftformat --lint .
+      - name: Lint
+        run: swiftlint --strict
+
+  build-and-test:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate the Xcode project
+        run: xcodegen
+      - name: Build
+        run: xcodebuild build -scheme Dropdone -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO
+      - name: Test
+        run: xcodebuild test -scheme Dropdone -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO
