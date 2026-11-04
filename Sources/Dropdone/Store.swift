@@ -90,6 +90,12 @@ final class Store {
     }
 
     /// The list shows open items only, so the offsets count those, not history.
+    /// Removes every finished item for good. Open items stay.
+    func clearHistory() {
+        items.removeAll { isArchived($0, at: clock) }
+        save()
+    }
+
     func move(from source: IndexSet, to destination: Int) {
         var open = openItems
         open.move(fromOffsets: source, toOffset: destination)

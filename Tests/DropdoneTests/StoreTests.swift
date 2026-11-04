@@ -133,6 +133,32 @@ final class StoreTests: XCTestCase {
         XCTAssertEqual(store.history.map(\.title), ["old done"])
     }
 
+    func testClearHistoryKeepsOpenItems() throws {
+        let old = [Item(title: "open"), Item(title: "old done", isDone: true)]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(old).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL)
+        store.clearHistory()
+        XCTAssertEqual(store.items.map(\.title), ["open"])
+        XCTAssertTrue(store.history.isEmpty)
+    }
+
+    func testRestoreFromHistoryPutsItemBackOnList() throws {
+        let old = [Item(title: "old done", isDone: true)]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(old).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL)
+        store.toggle(store.history[0].id)
+        XCTAssertEqual(store.openItems.map(\.title), ["old done"])
+        XCTAssertTrue(store.history.isEmpty)
+    }
+
     func testMoveKeepsHistoryAfterOpenItems() throws {
         let old = [
             Item(title: "a"),
