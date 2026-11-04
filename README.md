@@ -6,6 +6,8 @@
 
 A tiny checklist that lives in your Mac menu bar, right next to Wi-Fi and Control Center. Click the icon, check things off, done. It uses Apple's Liquid Glass look so it fits in with the rest of macOS.
 
+![The Dropdone panel with four items](docs/panel.png)
+
 ## How to use it
 
 | You do | What happens |
