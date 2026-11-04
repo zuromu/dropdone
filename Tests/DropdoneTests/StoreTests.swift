@@ -74,6 +74,107 @@ final class StoreTests: XCTestCase {
         XCTAssertTrue(reloaded.items[0].isDone)
     }
 
+    func testToggleSetsAndClearsCompletedDate() {
+        let store = Store(fileURL: fileURL)
+        let id = store.add(title: "finish me")
+
+        store.toggle(id)
+        XCTAssertNotNil(store.items[0].completedAt)
+
+        store.toggle(id)
+        XCTAssertNil(store.items[0].completedAt)
+    }
+
+    func testOldFileWithoutCompletedDateStillLoads() throws {
+        let json = #"[{"id":"\#(UUID().uuidString)","title":"old item","isDone":true}]"#
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try Data(json.utf8).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL)
+        XCTAssertEqual(store.items.map(\.title), ["old item"])
+        XCTAssertNil(store.items[0].completedAt)
+    }
+
+    func testCheckedItemMovesToHistoryAfterUndoTime() {
+        let store = Store(fileURL: fileURL)
+        let finished = Date()
+        let item = Item(title: "done", isDone: true, completedAt: finished)
+
+        XCTAssertFalse(store.isArchived(item, at: finished.addingTimeInterval(1)))
+        XCTAssertTrue(store.isArchived(item, at: finished.addingTimeInterval(Store.archiveDelay)))
+    }
+
+    func testOpenItemIsNeverArchived() {
+        let store = Store(fileURL: fileURL)
+        let item = Item(title: "still open")
+        XCTAssertFalse(store.isArchived(item, at: Date.distantFuture))
+    }
+
+    func testJustCheckedItemStaysInOpenItems() {
+        let store = Store(fileURL: fileURL)
+        let id = store.add(title: "oops")
+        store.toggle(id)
+
+        XCTAssertEqual(store.openItems.count, 1)
+        XCTAssertTrue(store.history.isEmpty)
+    }
+
+    func testDoneItemFromOldFileGoesToHistory() throws {
+        let old = [Item(title: "open"), Item(title: "old done", isDone: true)]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(old).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL)
+        XCTAssertEqual(store.openItems.map(\.title), ["open"])
+        XCTAssertEqual(store.history.map(\.title), ["old done"])
+    }
+
+    func testClearHistoryKeepsOpenItems() throws {
+        let old = [Item(title: "open"), Item(title: "old done", isDone: true)]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(old).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL)
+        store.clearHistory()
+        XCTAssertEqual(store.items.map(\.title), ["open"])
+        XCTAssertTrue(store.history.isEmpty)
+    }
+
+    func testRestoreFromHistoryPutsItemBackOnList() throws {
+        let old = [Item(title: "old done", isDone: true)]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(old).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL)
+        store.toggle(store.history[0].id)
+        XCTAssertEqual(store.openItems.map(\.title), ["old done"])
+        XCTAssertTrue(store.history.isEmpty)
+    }
+
+    func testMoveKeepsHistoryAfterOpenItems() throws {
+        let old = [
+            Item(title: "a"),
+            Item(title: "old done", isDone: true),
+            Item(title: "c"),
+        ]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(old).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL)
+        store.move(from: IndexSet(integer: 1), to: 0)
+        XCTAssertEqual(store.items.map(\.title), ["c", "a", "old done"])
+    }
+
     func testItemWithoutNameIsNotSaved() {
         let store = Store(fileURL: fileURL)
         store.add(title: "keep me")
