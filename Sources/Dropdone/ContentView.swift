@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var showHistory = false
 
     private let rowHeight: CGFloat = 40
+    private let minRows: CGFloat = 3
     private let topPadding: CGFloat = 8
     private let footerHeight: CGFloat = 48
     private let maxListHeight: CGFloat = 360
@@ -13,10 +14,9 @@ struct ContentView: View {
     /// The panel grows with the list, but stops growing at maxListHeight.
     private var listHeight: CGFloat {
         let count = showHistory ? store.history.count : store.openItems.count
-        if count == 0 {
-            return 80
-        }
-        return min(CGFloat(count) * rowHeight + topPadding, maxListHeight)
+        // Never smaller than minRows, so the window does not jump on every change.
+        let rows = max(CGFloat(count), minRows)
+        return min(rows * rowHeight + topPadding, maxListHeight)
     }
 
     var body: some View {
