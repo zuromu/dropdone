@@ -23,6 +23,7 @@ struct ItemRow: View {
                     .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(item.isDone ? "Mark as not done" : "Mark as done")
 
             if isEditing {
                 TextField("What needs doing?", text: $draft)

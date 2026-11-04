@@ -17,6 +17,7 @@ struct HistoryView: View {
                     }
                     .buttonStyle(.plain)
                     .help("Put back on the list")
+                    .accessibilityLabel("Put back on the list")
 
                     Text(item.title)
                         .strikethrough()
