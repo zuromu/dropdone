@@ -11,6 +11,9 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - Check and uncheck items
 - Double click to rename, empty names remove the item
 - Drag to reorder, right click to delete
+- Checked items stay for 5 seconds so you can undo, then move to History
+- History view with the finish date, restore, and clear
+- Panel height follows the list and rows animate
 - Automatic saving to a JSON file
 - Unit tests for the store
 - CI, CodeQL, and release workflows
