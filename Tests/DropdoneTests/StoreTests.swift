@@ -74,6 +74,29 @@ final class StoreTests: XCTestCase {
         XCTAssertTrue(reloaded.items[0].isDone)
     }
 
+    func testToggleSetsAndClearsCompletedDate() {
+        let store = Store(fileURL: fileURL)
+        let id = store.add(title: "finish me")
+
+        store.toggle(id)
+        XCTAssertNotNil(store.items[0].completedAt)
+
+        store.toggle(id)
+        XCTAssertNil(store.items[0].completedAt)
+    }
+
+    func testOldFileWithoutCompletedDateStillLoads() throws {
+        let json = #"[{"id":"\#(UUID().uuidString)","title":"old item","isDone":true}]"#
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try Data(json.utf8).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL)
+        XCTAssertEqual(store.items.map(\.title), ["old item"])
+        XCTAssertNil(store.items[0].completedAt)
+    }
+
     func testItemWithoutNameIsNotSaved() {
         let store = Store(fileURL: fileURL)
         store.add(title: "keep me")

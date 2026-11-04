@@ -35,6 +35,7 @@ final class Store {
     func toggle(_ id: Item.ID) {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         items[index].isDone.toggle()
+        items[index].completedAt = items[index].isDone ? Date() : nil
         save()
     }
 
