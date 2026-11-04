@@ -4,6 +4,7 @@ struct ContentView: View {
     let store: Store
     @State private var editingID: Item.ID?
     @State private var showHistory = false
+    @State private var opensAtLogin = LoginItem.isEnabled
 
     private let rowHeight: CGFloat = 40
     private let minRows: CGFloat = 3
@@ -76,6 +77,22 @@ struct ContentView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
+
+                Menu {
+                    Toggle("Open at login", isOn: $opensAtLogin)
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .foregroundStyle(.secondary)
+                .accessibilityLabel("More options")
+                .onChange(of: opensAtLogin) { _, wanted in
+                    LoginItem.set(wanted)
+                    // If the system said no, show the real state again.
+                    opensAtLogin = LoginItem.isEnabled
+                }
 
                 Button("Quit") {
                     NSApplication.shared.terminate(nil)

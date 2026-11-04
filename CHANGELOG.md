@@ -6,6 +6,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Added
 - The menu bar icon shows how many items are left to do
+- An Open at login switch in the panel
 
 ## [0.1.0]
 

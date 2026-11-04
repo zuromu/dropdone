@@ -24,6 +24,7 @@ A tiny checklist that lives in your Mac menu bar, right next to Wi-Fi and Contro
 | Click the arrow next to a finished item | Put it back on the list |
 | Click **Clear** in History | Delete all finished items for good |
 | Click **Back** | Return to your list |
+| Click the **...** button, then **Open at login** | Start Dropdone every time you log in. Turn it off the same way |
 
 Saving an item with an empty name removes it. Your list is saved automatically in `~/Library/Application Support/Dropdone/items.json`.
 
@@ -63,6 +64,7 @@ Sources/Dropdone/
   ItemRow.swift       one row: checkbox, title, editing
   Store.swift         the list itself, plus saving and loading
   Item.swift          a single checklist item
+  LoginItem.swift     the open at login setting
 Tests/DropdoneTests/  unit tests for the store
 project.yml           XcodeGen settings (the .xcodeproj is generated)
 ```
