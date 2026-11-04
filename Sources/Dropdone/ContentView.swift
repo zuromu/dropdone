@@ -4,6 +4,19 @@ struct ContentView: View {
     let store: Store
     @State private var editingID: Item.ID?
 
+    private let rowHeight: CGFloat = 40
+    private let topPadding: CGFloat = 8
+    private let footerHeight: CGFloat = 48
+    private let maxListHeight: CGFloat = 360
+
+    /// The panel grows with the list, but stops growing at maxListHeight.
+    private var listHeight: CGFloat {
+        if store.items.isEmpty {
+            return 80
+        }
+        return min(CGFloat(store.items.count) * rowHeight + topPadding, maxListHeight)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             List {
@@ -11,7 +24,7 @@ struct ContentView: View {
                     ItemRow(item: item, store: store, editingID: $editingID)
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: 3, leading: 10, bottom: 3, trailing: 10))
+                        .listRowInsets(EdgeInsets(top: 3, leading: 0, bottom: 3, trailing: 0))
                 }
                 .onMove { source, destination in
                     store.move(from: source, to: destination)
@@ -19,6 +32,15 @@ struct ContentView: View {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
+            .contentMargins(.horizontal, 12, for: .scrollContent)
+            .padding(.top, topPadding)
+            .frame(height: listHeight)
+            .overlay {
+                if store.items.isEmpty {
+                    Text("Nothing to do")
+                        .foregroundStyle(.secondary)
+                }
+            }
 
             HStack {
                 Button {
@@ -38,8 +60,9 @@ struct ContentView: View {
                 .keyboardShortcut("q")
             }
             .padding(12)
+            .frame(height: footerHeight)
         }
-        .frame(width: 320, height: 420)
+        .frame(width: 320)
         .background(.clear)
     }
 }
