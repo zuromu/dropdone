@@ -73,4 +73,24 @@ final class StoreTests: XCTestCase {
         XCTAssertEqual(reloaded.items[0].title, "keep me")
         XCTAssertTrue(reloaded.items[0].isDone)
     }
+
+    func testItemWithoutNameIsNotSaved() {
+        let store = Store(fileURL: fileURL)
+        store.add(title: "keep me")
+        store.add()
+
+        let reloaded = Store(fileURL: fileURL)
+        XCTAssertEqual(reloaded.items.map(\.title), ["keep me"])
+    }
+
+    func testBlankItemsInOldFileAreDroppedOnLoad() throws {
+        let old = [Item(title: "keep me"), Item(title: "", isDone: true)]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(old).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL)
+        XCTAssertEqual(store.items.map(\.title), ["keep me"])
+    }
 }
