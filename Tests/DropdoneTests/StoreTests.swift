@@ -175,6 +175,18 @@ final class StoreTests: XCTestCase {
         XCTAssertEqual(store.items.map(\.title), ["c", "a", "old done"])
     }
 
+    func testRemainingCountSkipsDoneAndUnnamedItems() {
+        let store = Store(fileURL: fileURL)
+        store.add(title: "one")
+        store.add(title: "two")
+        let done = store.add(title: "three")
+        store.add()
+        XCTAssertEqual(store.remainingCount, 3)
+
+        store.toggle(done)
+        XCTAssertEqual(store.remainingCount, 2)
+    }
+
     func testItemWithoutNameIsNotSaved() {
         let store = Store(fileURL: fileURL)
         store.add(title: "keep me")

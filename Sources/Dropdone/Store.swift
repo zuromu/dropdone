@@ -39,6 +39,11 @@ final class Store {
             .sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
     }
 
+    /// How many items are still to do. Checked items and unnamed ones are not counted.
+    var remainingCount: Int {
+        items.filter { !$0.isDone && !$0.title.isEmpty }.count
+    }
+
     /// A checked item moves to history once the undo time has passed.
     func isArchived(_ item: Item, at now: Date) -> Bool {
         guard item.isDone else { return false }

@@ -4,6 +4,9 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+- The menu bar icon shows how many items are left to do
+
 ## [0.1.0]
 
 ### Added
