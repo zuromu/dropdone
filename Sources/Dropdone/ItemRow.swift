@@ -20,6 +20,7 @@ struct ItemRow: View {
                 Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
                     .foregroundStyle(item.isDone ? Color.accentColor : Color.secondary)
+                    .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.plain)
 
@@ -52,6 +53,9 @@ struct ItemRow: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .glassEffect(.regular, in: .rect(cornerRadius: 14))
+        // A checked row fades while the undo time runs, then leaves the list.
+        .opacity(item.isDone ? 0.55 : 1)
+        .animation(.smooth, value: item.isDone)
         .contextMenu {
             Button("Delete", role: .destructive) {
                 store.delete(item.id)

@@ -25,6 +25,7 @@ struct ContentView: View {
                 HistoryView(store: store)
                     .padding(.top, topPadding)
                     .frame(height: listHeight)
+                    .transition(.opacity)
             } else {
                 List {
                     ForEach(store.openItems) { item in
@@ -42,12 +43,14 @@ struct ContentView: View {
                 .contentMargins(.horizontal, 12, for: .scrollContent)
                 .padding(.top, topPadding)
                 .frame(height: listHeight)
+                .animation(.smooth, value: store.openItems)
                 .overlay {
                     if store.openItems.isEmpty {
                         Text("Nothing to do")
                             .foregroundStyle(.secondary)
                     }
                 }
+                .transition(.opacity)
             }
 
             HStack(spacing: 16) {
@@ -84,6 +87,7 @@ struct ContentView: View {
             .padding(12)
             .frame(height: footerHeight)
         }
+        .animation(.smooth, value: showHistory)
         .frame(width: 320)
         .background(.clear)
     }

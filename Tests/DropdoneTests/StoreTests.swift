@@ -99,8 +99,8 @@ final class StoreTests: XCTestCase {
 
     func testCheckedItemMovesToHistoryAfterUndoTime() {
         let store = Store(fileURL: fileURL)
-        let item = Item(title: "done", isDone: true, completedAt: Date())
-        let finished = item.completedAt!
+        let finished = Date()
+        let item = Item(title: "done", isDone: true, completedAt: finished)
 
         XCTAssertFalse(store.isArchived(item, at: finished.addingTimeInterval(1)))
         XCTAssertTrue(store.isArchived(item, at: finished.addingTimeInterval(Store.archiveDelay)))

@@ -43,6 +43,7 @@ struct HistoryView: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .contentMargins(.horizontal, 16, for: .scrollContent)
+        .animation(.smooth, value: store.history)
         .overlay {
             if store.history.isEmpty {
                 Text("No history yet")
