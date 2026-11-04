@@ -10,6 +10,8 @@ A tiny checklist that lives in your Mac menu bar, right next to Wi-Fi and Contro
 
 ## How to use it
 
+![Checking off an item, finding it in History, and putting it back](docs/demo.gif)
+
 | You do | What happens |
 |---|---|
 | Click the menu bar icon | The panel opens |
