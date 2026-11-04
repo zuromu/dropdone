@@ -11,16 +11,16 @@ struct ContentView: View {
 
     /// The panel grows with the list, but stops growing at maxListHeight.
     private var listHeight: CGFloat {
-        if store.items.isEmpty {
+        if store.openItems.isEmpty {
             return 80
         }
-        return min(CGFloat(store.items.count) * rowHeight + topPadding, maxListHeight)
+        return min(CGFloat(store.openItems.count) * rowHeight + topPadding, maxListHeight)
     }
 
     var body: some View {
         VStack(spacing: 0) {
             List {
-                ForEach(store.items) { item in
+                ForEach(store.openItems) { item in
                     ItemRow(item: item, store: store, editingID: $editingID)
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
@@ -36,7 +36,7 @@ struct ContentView: View {
             .padding(.top, topPadding)
             .frame(height: listHeight)
             .overlay {
-                if store.items.isEmpty {
+                if store.openItems.isEmpty {
                     Text("Nothing to do")
                         .foregroundStyle(.secondary)
                 }

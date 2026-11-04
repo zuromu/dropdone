@@ -6,6 +6,11 @@ import SwiftUI
 @Observable
 final class Store {
     private(set) var items: [Item] = []
+    /// Updated when the undo time runs out, so the views refresh.
+    private(set) var clock = Date()
+
+    /// Seconds a checked item stays in the list, so a wrong click can be undone.
+    static let archiveDelay: TimeInterval = 5
 
     @ObservationIgnored private let fileURL: URL
 
@@ -19,6 +24,26 @@ final class Store {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         return base.appendingPathComponent("Dropdone", isDirectory: true)
             .appendingPathComponent("items.json")
+    }
+
+    // MARK: - Open items and history
+
+    /// Items that are not done yet, plus ones checked off a moment ago.
+    var openItems: [Item] {
+        items.filter { !isArchived($0, at: clock) }
+    }
+
+    /// Finished items, newest first. Items from an old file have no date and go last.
+    var history: [Item] {
+        items.filter { isArchived($0, at: clock) }
+            .sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
+    }
+
+    /// A checked item moves to history once the undo time has passed.
+    func isArchived(_ item: Item, at now: Date) -> Bool {
+        guard item.isDone else { return false }
+        guard let finished = item.completedAt else { return true }
+        return now.timeIntervalSince(finished) >= Self.archiveDelay
     }
 
     // MARK: - Changing the list
@@ -37,6 +62,14 @@ final class Store {
         items[index].isDone.toggle()
         items[index].completedAt = items[index].isDone ? Date() : nil
         save()
+
+        if items[index].isDone {
+            // Once the undo time is over, the clock moves on and the item leaves the list.
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(Self.archiveDelay))
+                clock = Date()
+            }
+        }
     }
 
     /// Renames an item. An empty name removes the item.
@@ -56,8 +89,11 @@ final class Store {
         save()
     }
 
+    /// The list shows open items only, so the offsets count those, not history.
     func move(from source: IndexSet, to destination: Int) {
-        items.move(fromOffsets: source, toOffset: destination)
+        var open = openItems
+        open.move(fromOffsets: source, toOffset: destination)
+        items = open + history
         save()
     }
 
