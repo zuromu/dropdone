@@ -14,7 +14,7 @@ A tiny checklist that lives in your Mac menu bar, right next to Wi-Fi and Contro
 
 | You do | What happens |
 |---|---|
-| Click the menu bar icon | The panel opens |
+| Click the menu bar icon | The panel opens. The number next to the icon is how many items are left |
 | Click the circle on the left | Check or uncheck an item. A checked item fades, then moves to History after 5 seconds. Click the circle again before that to undo |
 | Double click an item | Edit its name, press Return to save |
 | Click **Add** | A new item appears, ready to type in |
