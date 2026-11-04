@@ -66,14 +66,15 @@ final class Store {
         guard let data = try? Data(contentsOf: fileURL),
               let saved = try? JSONDecoder().decode([Item].self, from: data)
         else { return }
-        items = saved
+        items = saved.filter { !$0.title.isEmpty }
     }
 
     private func save() {
         do {
             let folder = fileURL.deletingLastPathComponent()
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            let data = try JSONEncoder().encode(items)
+            // A new item has no name until it is typed, so it stays out of the file.
+            let data = try JSONEncoder().encode(items.filter { !$0.title.isEmpty })
             try data.write(to: fileURL, options: .atomic)
         } catch {
             print("Could not save items: \(error)")
