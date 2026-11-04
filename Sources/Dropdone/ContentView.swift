@@ -4,16 +4,17 @@ struct ContentView: View {
     let store: Store
     @State private var editingID: Item.ID?
 
-    private let rowHeight: CGFloat = 44
+    private let rowHeight: CGFloat = 40
+    private let topPadding: CGFloat = 8
     private let footerHeight: CGFloat = 48
     private let maxListHeight: CGFloat = 360
 
-    // The panel grows with the list, but stops growing at maxListHeight.
+    /// The panel grows with the list, but stops growing at maxListHeight.
     private var listHeight: CGFloat {
         if store.items.isEmpty {
             return 80
         }
-        return min(CGFloat(store.items.count) * rowHeight + 12, maxListHeight)
+        return min(CGFloat(store.items.count) * rowHeight + topPadding, maxListHeight)
     }
 
     var body: some View {
@@ -32,7 +33,7 @@ struct ContentView: View {
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .contentMargins(.horizontal, 12, for: .scrollContent)
-            .contentMargins(.top, 6, for: .scrollContent)
+            .padding(.top, topPadding)
             .frame(height: listHeight)
             .overlay {
                 if store.items.isEmpty {
