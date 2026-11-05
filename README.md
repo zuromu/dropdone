@@ -23,7 +23,7 @@
   <img src="https://img.shields.io/badge/macOS-26%2B-black" alt="macOS 26+">
 </p>
 
-![Dropdone in action: opening the list, checking items off, adding one, renaming one and using History](docs/demo.gif)
+![Dropdone in action: opening the list, checking items off, adding one, renaming one and using History](docs/dropdone-demo.gif)
 
 ## Why
 
@@ -40,7 +40,7 @@ Most todo apps want a whole window and a system for organizing your life. Someti
 
 | Your list | History |
 |---|---|
-| ![The Dropdone panel with four items](docs/panel.png) | ![The History view with three finished items](docs/history.png) |
+| ![The Dropdone panel with four items](docs/screenshot-list.png) | ![The History view with three finished items](docs/screenshot-history.png) |
 
 ## How to use it
 
