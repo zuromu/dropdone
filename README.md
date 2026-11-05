@@ -1,28 +1,60 @@
-# Dropdone
+<p align="center">
+  <img src="docs/icon.png" width="128" alt="Dropdone app icon">
+</p>
 
-[![CI](https://github.com/zuromu/dropdone/actions/workflows/ci.yml/badge.svg)](https://github.com/zuromu/dropdone/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![macOS 26+](https://img.shields.io/badge/macOS-26%2B-black)
+<h1 align="center">Dropdone</h1>
 
-A tiny checklist that lives in your Mac menu bar, right next to Wi-Fi and Control Center. Click the icon, check things off, done. It uses Apple's Liquid Glass look so it fits in with the rest of macOS.
+<p align="center">
+  A tiny checklist that lives in your Mac menu bar.<br>
+  Click the icon, check things off, get back to work.
+</p>
 
-![The Dropdone panel with four items](docs/panel.png)
+<p align="center">
+  <a href="https://github.com/zuromu/dropdone/releases/latest"><b>Download</b></a>
+  &nbsp;·&nbsp;
+  <a href="#how-to-use-it">How to use it</a>
+  &nbsp;·&nbsp;
+  <a href="#build-it-yourself">Build it yourself</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/zuromu/dropdone/actions/workflows/ci.yml"><img src="https://github.com/zuromu/dropdone/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/macOS-26%2B-black" alt="macOS 26+">
+</p>
+
+![Dropdone in action: opening the list, checking items off, adding one, renaming one and using History](docs/demo.gif)
+
+## Why
+
+Most todo apps want a whole window and a system for organizing your life. Sometimes you just need a short list of things for today that is always one click away. Dropdone sits next to Wi-Fi and Control Center, shows how many things are left, and gets out of the way. It uses Apple's Liquid Glass look so it fits right in with macOS Tahoe.
+
+## Features
+
+- **Always one click away.** The list drops down from the menu bar, and the number next to the icon shows what is left.
+- **Undo built in.** A checked item stays for 5 seconds, so a wrong click is easy to fix.
+- **History.** Finished items move to History with the time you finished them. Put any of them back with one click.
+- **Quick to edit.** Press Command-N to add, double click to rename, drag to reorder, right click to delete.
+- **Starts with your Mac** if you turn on Open at login.
+- **Your data stays on your Mac** in a plain JSON file. No account, no sync, no tracking.
+
+| Your list | History |
+|---|---|
+| ![The Dropdone panel with four items](docs/panel.png) | ![The History view with three finished items](docs/history.png) |
 
 ## How to use it
-
-![Checking off an item, finding it in History, and putting it back](docs/demo.gif)
 
 | You do | What happens |
 |---|---|
 | Click the menu bar icon | The panel opens. The number next to the icon is how many items are left |
 | Click the circle on the left | Check or uncheck an item. A checked item fades, then moves to History after 5 seconds. Click the circle again before that to undo |
+| Click **Add** or press Command-N | A new item appears, ready to type in |
 | Double click an item | Edit its name, press Return to save |
-| Click **Add** | A new item appears, ready to type in |
 | Drag an item | Move it up or down |
 | Right click an item | Delete it |
 | Click **History** | See your finished items, newest first |
 | Click the arrow next to a finished item | Put it back on the list |
-| Click **Clear** in History | Delete all finished items for good |
+| Click **Clear** in History, then **Clear all?** | Delete all finished items for good. It asks twice so you cannot do it by accident |
 | Click **Back** | Return to your list |
 | Click the **...** button, then **Open at login** | Start Dropdone every time you log in. Turn it off the same way |
 
@@ -30,7 +62,7 @@ Saving an item with an empty name removes it. Your list is saved automatically i
 
 ## Install
 
-1. Download the latest zip from the [Releases](https://github.com/zuromu/dropdone/releases) page.
+1. Download the latest zip from the [Releases](https://github.com/zuromu/dropdone/releases/latest) page.
 2. Unzip it and drag `Dropdone.app` into your Applications folder.
 3. The app is not signed with an Apple Developer certificate yet, so the first time you open it, right click the app and choose **Open**.
 
@@ -65,6 +97,7 @@ Sources/Dropdone/
   Store.swift         the list itself, plus saving and loading
   Item.swift          a single checklist item
   LoginItem.swift     the open at login setting
+  Assets.xcassets     the app icon
 Tests/DropdoneTests/  unit tests for the store
 project.yml           XcodeGen settings (the .xcodeproj is generated)
 ```
