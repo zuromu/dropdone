@@ -10,7 +10,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Changed
 - Clear in History asks for a second click before deleting everything
-- New README with a demo GIF and screenshots of the list and History
+- New README with a 60fps demo animation and screenshots of the list and History
 
 ## [0.2.0]
 
