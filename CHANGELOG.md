@@ -4,6 +4,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [0.2.0]
+
 ### Added
 - The menu bar icon shows how many items are left to do
 - An Open at login switch in the panel
@@ -22,5 +24,6 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - Unit tests for the store
 - CI, CodeQL, and release workflows
 
-[Unreleased]: https://github.com/zuromu/dropdone/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/zuromu/dropdone/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/zuromu/dropdone/releases/tag/v0.2.0
 [0.1.0]: https://github.com/zuromu/dropdone/releases/tag/v0.1.0
