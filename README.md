@@ -23,7 +23,7 @@
   <img src="https://img.shields.io/badge/macOS-26%2B-black" alt="macOS 26+">
 </p>
 
-![Dropdone in action: opening the list, checking items off, adding one, renaming one and using History](docs/dropdone-demo.gif)
+![Dropdone in action: opening the list, checking items off, adding one, renaming one and using History](docs/dropdone-demo.webp)
 
 ## Why
 
