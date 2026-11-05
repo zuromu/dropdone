@@ -5,6 +5,8 @@ struct ContentView: View {
     @State private var editingID: Item.ID?
     @State private var showHistory = false
     @State private var opensAtLogin = LoginItem.isEnabled
+    /// Clear asks for a second click, because it deletes for good.
+    @State private var confirmClear = false
 
     private let rowHeight: CGFloat = 40
     private let minRows: CGFloat = 3
@@ -56,10 +58,17 @@ struct ContentView: View {
 
             HStack(spacing: 16) {
                 if showHistory {
-                    Button("Clear") {
-                        store.clearHistory()
+                    Button(confirmClear ? "Clear all?" : "Clear") {
+                        if confirmClear {
+                            store.clearHistory()
+                            confirmClear = false
+                        } else {
+                            confirmClear = true
+                        }
                     }
                     .buttonStyle(.plain)
+                    .foregroundStyle(confirmClear ? Color.red : Color.primary)
+                    .disabled(store.history.isEmpty)
                 } else {
                     Button {
                         editingID = store.add()
@@ -67,12 +76,15 @@ struct ContentView: View {
                         Label("Add", systemImage: "plus")
                     }
                     .buttonStyle(.plain)
+                    .keyboardShortcut("n")
+                    .help("Add an item (Command-N)")
                 }
 
                 Spacer()
 
                 Button(showHistory ? "Back" : "History") {
                     editingID = nil
+                    confirmClear = false
                     showHistory.toggle()
                 }
                 .buttonStyle(.plain)

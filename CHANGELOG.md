@@ -4,6 +4,14 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+- An app icon
+- Command-N adds a new item
+
+### Changed
+- Clear in History asks for a second click before deleting everything
+- New README with a demo GIF and screenshots of the list and History
+
 ## [0.2.0]
 
 ### Added
