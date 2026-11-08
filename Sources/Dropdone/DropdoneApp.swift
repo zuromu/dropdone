@@ -2,17 +2,10 @@ import SwiftUI
 
 @main
 struct DropdoneApp: App {
-    @State private var store = Store()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
     var body: some Scene {
-        MenuBarExtra {
-            ContentView(store: store)
-        } label: {
-            Image(systemName: "checklist")
-            if store.remainingCount > 0 {
-                Text("\(store.remainingCount)")
-            }
-        }
-        .menuBarExtraStyle(.window)
+        // The menu bar item and its panel live in AppDelegate, so there is no window scene.
+        Settings { EmptyView() }
     }
 }
