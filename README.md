@@ -35,6 +35,7 @@ Most todo apps want a whole window and a system for organizing your life. Someti
 - **Undo built in.** A checked item stays for 5 seconds, so a wrong click is easy to fix.
 - **History.** Finished items move to History with the time you finished them. Put any of them back with one click.
 - **Quick to edit.** Press Command-N to add, double click to rename, drag to reorder, right click to delete.
+- **One shortcut from anywhere.** Press Control-Option-D and the panel opens or closes, whatever app you are in.
 - **Starts with your Mac** if you turn on Open at login.
 - **Your data stays on your Mac** in a plain JSON file. No account, no sync, no tracking.
 
@@ -47,6 +48,7 @@ Most todo apps want a whole window and a system for organizing your life. Someti
 | You do | What happens |
 |---|---|
 | Click the menu bar icon | The panel opens. The number next to the icon is how many items are left |
+| Press Control-Option-D | The panel opens or closes from any app, without going to the menu bar first |
 | Click the circle on the left | Check or uncheck an item. A checked item fades, then moves to History after 5 seconds. Click the circle again before that to undo |
 | Click **Add** or press Command-N | A new item appears, ready to type in |
 | Double click an item | Edit its name, press Return to save |
@@ -83,23 +85,25 @@ open Dropdone.xcodeproj
 Press Run in Xcode. To run the tests from the terminal:
 
 ```bash
-xcodebuild test -scheme Dropdone -destination 'platform=macOS'
+xcodebuild test -scheme Dropdone -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO
 ```
 
 ## How the code is organized
 
 ```
 Sources/Dropdone/
-  DropdoneApp.swift   the menu bar entry point
-  ContentView.swift   the panel with the list
-  HistoryView.swift   the list of finished items
-  ItemRow.swift       one row: checkbox, title, editing
-  Store.swift         the list itself, plus saving and loading
-  Item.swift          a single checklist item
-  LoginItem.swift     the open at login setting
-  Assets.xcassets     the app icon
-Tests/DropdoneTests/  unit tests for the store
-project.yml           XcodeGen settings (the .xcodeproj is generated)
+  DropdoneApp.swift     the app entry point, with no window of its own
+  AppDelegate.swift     owns the menu bar item and the panel
+  ContentView.swift     the panel with the list
+  HistoryView.swift     the list of finished items
+  ItemRow.swift         one row: checkbox, title, editing
+  Item.swift            a single checklist item
+  Store.swift           the list itself, plus saving and loading
+  GlobalShortcut.swift  Control-Option-D, from any app
+  LoginItem.swift       the open at login setting
+  Assets.xcassets       the app icon
+Tests/DropdoneTests/    unit tests for the store
+project.yml             XcodeGen settings (the .xcodeproj is generated)
 ```
 
 ## Contributing
