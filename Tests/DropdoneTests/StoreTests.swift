@@ -146,6 +146,20 @@ final class StoreTests: XCTestCase {
         XCTAssertTrue(store.history.isEmpty)
     }
 
+    func testUnreadableFileIsKeptAsBackup() throws {
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try Data("not json".utf8).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL)
+        store.add(title: "New")
+
+        let backup = fileURL.appendingPathExtension("bak")
+        XCTAssertEqual(try String(contentsOf: backup, encoding: .utf8), "not json")
+        XCTAssertEqual(Store(fileURL: fileURL).items.map(\.title), ["New"])
+    }
+
     func testRestoreFromHistoryPutsItemBackOnList() throws {
         let old = [Item(title: "old done", isDone: true)]
         try FileManager.default.createDirectory(

@@ -111,9 +111,14 @@ final class Store {
     // MARK: - Saving and loading
 
     private func load() {
-        guard let data = try? Data(contentsOf: fileURL),
-              let saved = try? JSONDecoder().decode([Item].self, from: data)
-        else { return }
+        guard let data = try? Data(contentsOf: fileURL) else { return }
+        guard let saved = try? JSONDecoder().decode([Item].self, from: data) else {
+            // Keep the unreadable file, so the next save does not overwrite the old list.
+            let backup = fileURL.appendingPathExtension("bak")
+            try? FileManager.default.removeItem(at: backup)
+            try? FileManager.default.moveItem(at: fileURL, to: backup)
+            return
+        }
         items = saved.filter { !$0.title.isEmpty }
     }
 
