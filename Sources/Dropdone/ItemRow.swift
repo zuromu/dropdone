@@ -40,6 +40,10 @@ struct ItemRow: View {
                             finishEditing()
                         }
                     }
+                    // Clicking another row changes editingID first, so save here too.
+                    .onDisappear {
+                        store.rename(item.id, to: draft)
+                    }
             } else {
                 Text(item.title)
                     .strikethrough(item.isDone)
@@ -65,9 +69,8 @@ struct ItemRow: View {
     }
 
     private func finishEditing() {
-        // Both Return and losing focus end up here, so only run once.
+        // The rename itself happens when the field goes away.
         guard isEditing else { return }
         editingID = nil
-        store.rename(item.id, to: draft)
     }
 }
