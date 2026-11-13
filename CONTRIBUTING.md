@@ -20,7 +20,7 @@ You need macOS 26 and a recent Xcode.
    ```bash
    swiftformat .
    swiftlint --strict
-   xcodebuild test -scheme Dropdone -destination 'platform=macOS'
+   xcodebuild test -scheme Dropdone -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO
    ```
 
 5. Open a pull request and fill in the template. CI must pass before it can be merged.

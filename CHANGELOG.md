@@ -4,6 +4,9 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+- Press Control-Option-D to open or close the panel from any app
+
 ## [0.3.0]
 
 ### Added
