@@ -206,4 +206,31 @@ final class StoreTests: XCTestCase {
         let store = Store(fileURL: fileURL)
         XCTAssertEqual(store.items.map(\.title), ["keep me"])
     }
+
+    func testHistoryListsNewestFirstAndUndatedLast() throws {
+        let now = Date()
+        let old = [
+            Item(title: "undated", isDone: true),
+            Item(title: "older", isDone: true, completedAt: now.addingTimeInterval(-600)),
+            Item(title: "newer", isDone: true, completedAt: now.addingTimeInterval(-60)),
+        ]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(old).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL)
+        XCTAssertEqual(store.history.map(\.title), ["newer", "older", "undated"])
+    }
+
+    func testClearHistoryIsSaved() throws {
+        let old = [Item(title: "open"), Item(title: "old done", isDone: true)]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(old).write(to: fileURL)
+
+        Store(fileURL: fileURL).clearHistory()
+        XCTAssertEqual(Store(fileURL: fileURL).items.map(\.title), ["open"])
+    }
 }
