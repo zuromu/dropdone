@@ -10,6 +10,10 @@ enum LoginItem {
         do {
             if enabled {
                 try SMAppService.mainApp.register()
+                // The system may want the user to approve it first.
+                if SMAppService.mainApp.status == .requiresApproval {
+                    SMAppService.openSystemSettingsLoginItems()
+                }
             } else {
                 try SMAppService.mainApp.unregister()
             }
