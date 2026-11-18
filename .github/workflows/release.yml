@@ -16,6 +16,8 @@ jobs:
         run: brew install xcodegen
       - name: Generate the Xcode project
         run: xcodegen
+      - name: Test
+        run: xcodebuild test -scheme Dropdone -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO
       - name: Build the app
         run: |
           xcodebuild build \
