@@ -233,4 +233,14 @@ final class StoreTests: XCTestCase {
         Store(fileURL: fileURL).clearHistory()
         XCTAssertEqual(Store(fileURL: fileURL).items.map(\.title), ["open"])
     }
+
+    func testClearHistoryAlsoRemovesJustCheckedItem() {
+        let store = Store(fileURL: fileURL)
+        let id = store.add()
+        store.rename(id, to: "just done")
+        store.toggle(id)
+
+        store.clearHistory()
+        XCTAssertTrue(store.items.isEmpty)
+    }
 }
