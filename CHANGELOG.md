@@ -9,6 +9,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Fixed
 - Open at login now opens Login Items in System Settings when the system needs you to approve it
+- Clear in History also removes an item you checked a moment ago
+- An items file that cannot be read is kept as items.json.bak instead of being overwritten
 
 ## [0.3.0]
 
