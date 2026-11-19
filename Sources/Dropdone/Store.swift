@@ -94,9 +94,9 @@ final class Store {
         save()
     }
 
-    /// Removes every finished item for good. Open items stay.
+    /// Removes every finished item for good, including one checked a moment ago. Open items stay.
     func clearHistory() {
-        items.removeAll { isArchived($0, at: clock) }
+        items.removeAll { $0.isDone }
         save()
     }
 
