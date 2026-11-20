@@ -6,6 +6,7 @@ struct ItemRow: View {
     @Binding var editingID: Item.ID?
 
     @State private var draft = ""
+    @State private var isEditingDraft = false
     @FocusState private var isFocused: Bool
 
     private var isEditing: Bool {
@@ -33,8 +34,10 @@ struct ItemRow: View {
                     .onExitCommand(perform: finishEditing)
                     .onAppear {
                         draft = item.title
+                        isEditingDraft = true
                         isFocused = true
                     }
+                    .onDisappear(perform: finishEditing)
                     .onChange(of: isFocused) { _, focused in
                         if !focused {
                             finishEditing()
@@ -65,9 +68,12 @@ struct ItemRow: View {
     }
 
     private func finishEditing() {
-        // Both Return and losing focus end up here, so only run once.
-        guard isEditing else { return }
-        editingID = nil
+        // Return, Escape, losing focus, or switching away all end up here, so only run once.
+        guard isEditingDraft else { return }
+        isEditingDraft = false
+        if editingID == item.id {
+            editingID = nil
+        }
         store.rename(item.id, to: draft)
     }
 }

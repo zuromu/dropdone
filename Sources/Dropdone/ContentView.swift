@@ -22,6 +22,18 @@ struct ContentView: View {
         return min(rows * rowHeight + topPadding, maxListHeight)
     }
 
+    /// Writes through to LoginItem without an onChange feedback loop if the system rejects or defers it.
+    private var openAtLoginBinding: Binding<Bool> {
+        Binding(
+            get: { opensAtLogin },
+            set: { wanted in
+                LoginItem.set(wanted)
+                // If the system said no or needs approval, show the real state again.
+                opensAtLogin = LoginItem.isEnabled
+            }
+        )
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             if showHistory {
@@ -91,7 +103,7 @@ struct ContentView: View {
                 .foregroundStyle(.secondary)
 
                 Menu {
-                    Toggle("Open at login", isOn: $opensAtLogin)
+                    Toggle("Open at login", isOn: openAtLoginBinding)
                 } label: {
                     Image(systemName: "ellipsis")
                 }
@@ -100,11 +112,6 @@ struct ContentView: View {
                 .fixedSize()
                 .foregroundStyle(.secondary)
                 .accessibilityLabel("More options")
-                .onChange(of: opensAtLogin) { _, wanted in
-                    LoginItem.set(wanted)
-                    // If the system said no, show the real state again.
-                    opensAtLogin = LoginItem.isEnabled
-                }
 
                 Button("Quit") {
                     NSApplication.shared.terminate(nil)
@@ -119,5 +126,11 @@ struct ContentView: View {
         .animation(.smooth, value: showHistory)
         .frame(width: 320)
         .background(.clear)
+        .onAppear {
+            opensAtLogin = LoginItem.isEnabled
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            opensAtLogin = LoginItem.isEnabled
+        }
     }
 }
