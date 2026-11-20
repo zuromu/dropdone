@@ -257,4 +257,32 @@ final class StoreTests: XCTestCase {
         store.clearHistory()
         XCTAssertTrue(store.items.isEmpty)
     }
+
+    func testDeleteIsSaved() {
+        let store = Store(fileURL: fileURL)
+        let first = store.add(title: "one")
+        store.add(title: "two")
+        store.delete(first)
+        XCTAssertEqual(Store(fileURL: fileURL).items.map(\.title), ["two"])
+    }
+
+    func testDeleteRemovesItemFromHistory() throws {
+        let old = [Item(title: "open"), Item(title: "done", isDone: true)]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(old).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL)
+        store.delete(store.history[0].id)
+        XCTAssertTrue(store.history.isEmpty)
+        XCTAssertEqual(Store(fileURL: fileURL).items.map(\.title), ["open"])
+    }
+
+    func testRenameIsSaved() {
+        let store = Store(fileURL: fileURL)
+        let id = store.add(title: "old")
+        store.rename(id, to: "new name")
+        XCTAssertEqual(Store(fileURL: fileURL).items.map(\.title), ["new name"])
+    }
 }
