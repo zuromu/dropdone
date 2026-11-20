@@ -13,9 +13,11 @@ final class Store {
     static let archiveDelay: TimeInterval = 5
 
     @ObservationIgnored private let fileURL: URL
+    @ObservationIgnored private let archiveDelay: TimeInterval
 
-    init(fileURL: URL = Store.defaultFileURL) {
+    init(fileURL: URL = Store.defaultFileURL, archiveDelay: TimeInterval = Store.archiveDelay) {
         self.fileURL = fileURL
+        self.archiveDelay = archiveDelay
         load()
     }
 
@@ -48,7 +50,7 @@ final class Store {
     func isArchived(_ item: Item, at now: Date) -> Bool {
         guard item.isDone else { return false }
         guard let finished = item.completedAt else { return true }
-        return now.timeIntervalSince(finished) >= Self.archiveDelay
+        return now.timeIntervalSince(finished) >= archiveDelay
     }
 
     // MARK: - Changing the list
@@ -69,11 +71,16 @@ final class Store {
         save()
 
         if items[index].isDone {
-            // Once the undo time is over, the clock moves on and the item leaves the list.
-            Task { @MainActor in
-                try? await Task.sleep(for: .seconds(Self.archiveDelay))
-                clock = Date()
-            }
+            scheduleArchive()
+        }
+    }
+
+    /// Moves the clock on once the undo time is over, so checked items leave the list.
+    private func scheduleArchive() {
+        let delay = archiveDelay
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(delay))
+            clock = Date()
         }
     }
 
@@ -120,6 +127,9 @@ final class Store {
             return
         }
         items = saved.filter { !$0.title.isEmpty }
+        if items.contains(where: { $0.isDone && !isArchived($0, at: clock) }) {
+            scheduleArchive()
+        }
     }
 
     private func save() {
