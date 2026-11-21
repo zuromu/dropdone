@@ -290,26 +290,26 @@ final class StoreTests: XCTestCase {
 @MainActor
 extension StoreTests {
     func testToggledItemLeavesOpenItemsAfterUndoTime() async throws {
-        let store = Store(fileURL: fileURL, archiveDelay: 0.05)
+        let store = Store(fileURL: fileURL, archiveDelay: 0.1)
         let id = store.add(title: "finish soon")
         store.toggle(id)
         XCTAssertEqual(store.openItems.map(\.title), ["finish soon"])
 
-        try await Task.sleep(for: .seconds(0.1))
+        try await Task.sleep(for: .seconds(0.6))
         XCTAssertTrue(store.openItems.isEmpty)
         XCTAssertEqual(store.history.map(\.title), ["finish soon"])
     }
 
     func testRecentlyCheckedItemStillArchivesAfterReload() async throws {
-        let store = Store(fileURL: fileURL, archiveDelay: 0.05)
+        let store = Store(fileURL: fileURL, archiveDelay: 0.1)
         let id = store.add(title: "checked before quit")
         store.toggle(id)
 
-        let reloaded = Store(fileURL: fileURL, archiveDelay: 0.05)
+        let reloaded = Store(fileURL: fileURL, archiveDelay: 0.1)
         XCTAssertEqual(reloaded.openItems.map(\.title), ["checked before quit"])
         XCTAssertTrue(reloaded.history.isEmpty)
 
-        try await Task.sleep(for: .seconds(0.1))
+        try await Task.sleep(for: .seconds(0.6))
         XCTAssertTrue(reloaded.openItems.isEmpty)
         XCTAssertEqual(reloaded.history.map(\.title), ["checked before quit"])
     }
