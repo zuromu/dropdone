@@ -3,6 +3,7 @@ import Observation
 import SwiftUI
 
 /// Owns the menu bar item and its panel, so the global shortcut can open and close it.
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let store = Store()
     private let popover = NSPopover()
@@ -28,7 +29,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let count = withObservationTracking {
             store.remainingCount
         } onChange: { [weak self] in
-            DispatchQueue.main.async { self?.updateCount() }
+            Task { @MainActor in
+                self?.updateCount()
+            }
         }
         statusItem?.button?.title = count > 0 ? " \(count)" : ""
     }
