@@ -15,6 +15,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - A rename in progress is saved when you switch rows, add an item, or open History
 - An item checked off right before quitting still moves to History when you reopen the app
 - Adding an item to a long list scrolls the new row into view
+- Turning on Open at login takes you to Login Items when the system needs your approval, even if the first attempt reports an error
 
 ## [0.3.0]
 
