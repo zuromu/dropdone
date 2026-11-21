@@ -129,6 +129,12 @@ struct ContentView: View {
         .onAppear {
             opensAtLogin = LoginItem.isEnabled
         }
+        .onDisappear {
+            confirmClear = false
+        }
+        .onChange(of: store.history) {
+            confirmClear = false
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             opensAtLogin = LoginItem.isEnabled
         }
