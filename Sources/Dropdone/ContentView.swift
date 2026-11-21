@@ -42,27 +42,35 @@ struct ContentView: View {
                     .frame(height: listHeight)
                     .transition(.opacity)
             } else {
-                List {
-                    ForEach(store.openItems) { item in
-                        ItemRow(item: item, store: store, editingID: $editingID)
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets(top: 3, leading: 0, bottom: 3, trailing: 0))
+                ScrollViewReader { proxy in
+                    List {
+                        ForEach(store.openItems) { item in
+                            ItemRow(item: item, store: store, editingID: $editingID)
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets(top: 3, leading: 0, bottom: 3, trailing: 0))
+                        }
+                        .onMove { source, destination in
+                            store.move(from: source, to: destination)
+                        }
                     }
-                    .onMove { source, destination in
-                        store.move(from: source, to: destination)
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .contentMargins(.horizontal, 12, for: .scrollContent)
+                    .padding(.top, topPadding)
+                    .frame(height: listHeight)
+                    .animation(.smooth, value: store.openItems)
+                    .onChange(of: editingID) { _, id in
+                        guard let id else { return }
+                        withAnimation(.smooth) {
+                            proxy.scrollTo(id)
+                        }
                     }
-                }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
-                .contentMargins(.horizontal, 12, for: .scrollContent)
-                .padding(.top, topPadding)
-                .frame(height: listHeight)
-                .animation(.smooth, value: store.openItems)
-                .overlay {
-                    if store.openItems.isEmpty {
-                        Text("Nothing to do")
-                            .foregroundStyle(.secondary)
+                    .overlay {
+                        if store.openItems.isEmpty {
+                            Text("Nothing to do")
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
                 .transition(.opacity)
