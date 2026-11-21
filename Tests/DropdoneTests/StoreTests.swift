@@ -300,6 +300,36 @@ extension StoreTests {
         XCTAssertEqual(store.history.map(\.title), ["finish soon"])
     }
 
+    func testUncheckingBeforeUndoTimeKeepsItemOnList() async throws {
+        let store = Store(fileURL: fileURL, archiveDelay: 0.2)
+        let id = store.add(title: "changed my mind")
+        store.toggle(id)
+        store.toggle(id)
+
+        try await Task.sleep(for: .seconds(0.6))
+        XCTAssertEqual(store.openItems.map(\.title), ["changed my mind"])
+        XCTAssertTrue(store.history.isEmpty)
+    }
+
+    func testCheckingAgainRestartsUndoTime() async throws {
+        let store = Store(fileURL: fileURL, archiveDelay: 1.5)
+        let id = store.add(title: "twice")
+        store.toggle(id)
+
+        try await Task.sleep(for: .seconds(1))
+        store.toggle(id)
+        store.toggle(id)
+
+        // The first check ran out here, but the second one is only 1 second old.
+        try await Task.sleep(for: .seconds(1))
+        XCTAssertEqual(store.openItems.map(\.title), ["twice"])
+        XCTAssertTrue(store.history.isEmpty)
+
+        try await Task.sleep(for: .seconds(1))
+        XCTAssertTrue(store.openItems.isEmpty)
+        XCTAssertEqual(store.history.map(\.title), ["twice"])
+    }
+
     func testRecentlyCheckedItemStillArchivesAfterReload() async throws {
         let store = Store(fileURL: fileURL, archiveDelay: 0.1)
         let id = store.add(title: "checked before quit")
