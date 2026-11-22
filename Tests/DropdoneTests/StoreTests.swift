@@ -160,6 +160,18 @@ final class StoreTests: XCTestCase {
         XCTAssertEqual(Store(fileURL: fileURL).items.map(\.title), ["New"])
     }
 
+    func testFileThatCannotBeReadIsKeptAsBackup() throws {
+        // A folder where the items file should be: it exists but cannot be read as data.
+        try FileManager.default.createDirectory(at: fileURL, withIntermediateDirectories: true)
+
+        let store = Store(fileURL: fileURL)
+        XCTAssertTrue(store.items.isEmpty)
+        store.add(title: "New")
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: fileURL.appendingPathExtension("bak").path))
+        XCTAssertEqual(Store(fileURL: fileURL).items.map(\.title), ["New"])
+    }
+
     func testRestoreFromHistoryPutsItemBackOnList() throws {
         let old = [Item(title: "old done", isDone: true)]
         try FileManager.default.createDirectory(
