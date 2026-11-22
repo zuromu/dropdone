@@ -2,13 +2,13 @@ import AppKit
 import Carbon.HIToolbox
 
 /// Opens and closes the panel from any app with Control-Option-D.
+@MainActor
 enum GlobalShortcut {
     private static var hotKey: EventHotKeyRef?
-    private static var onPress: (() -> Void)?
+    private static var onPress: (@MainActor () -> Void)?
 
-    static func register(onPress: @escaping () -> Void) {
+    static func register(onPress: @escaping @MainActor () -> Void) {
         guard hotKey == nil else { return }
-        self.onPress = onPress
 
         let id = EventHotKeyID(signature: OSType(0x4452_4F50), id: 1) // "DROP"
         let modifiers = UInt32(controlKey | optionKey)
@@ -21,18 +21,22 @@ enum GlobalShortcut {
             return
         }
 
+        self.onPress = onPress
         var eventType = EventTypeSpec(
             eventClass: OSType(kEventClassKeyboard),
             eventKind: UInt32(kEventHotKeyPressed)
         )
         let installStatus = InstallEventHandler(GetApplicationEventTarget(), { _, _, _ in
-            DispatchQueue.main.async { GlobalShortcut.onPress?() }
+            Task { @MainActor in
+                GlobalShortcut.onPress?()
+            }
             return noErr
         }, 1, &eventType, nil, nil)
         if installStatus != noErr {
             print("Could not install the shortcut handler: \(installStatus)")
             UnregisterEventHotKey(hotKey)
             hotKey = nil
+            self.onPress = nil
         }
     }
 }

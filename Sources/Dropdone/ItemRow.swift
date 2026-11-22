@@ -16,6 +16,8 @@ struct ItemRow: View {
     var body: some View {
         HStack(spacing: 10) {
             Button {
+                // Save an active rename first. An empty name removes the item, so the toggle does nothing.
+                finishEditing()
                 store.toggle(item.id)
             } label: {
                 Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
@@ -38,6 +40,11 @@ struct ItemRow: View {
                         isFocused = true
                     }
                     .onDisappear(perform: finishEditing)
+                    .onReceive(
+                        NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)
+                    ) { _ in
+                        finishEditing()
+                    }
                     .onChange(of: isFocused) { _, focused in
                         if !focused {
                             finishEditing()
@@ -68,7 +75,7 @@ struct ItemRow: View {
     }
 
     private func finishEditing() {
-        // Return, Escape, losing focus, or switching away all end up here, so only run once.
+        // Return, Escape, losing focus, switching away, toggling, or quitting all end up here, so only run once.
         guard isEditingDraft else { return }
         isEditingDraft = false
         if editingID == item.id {
