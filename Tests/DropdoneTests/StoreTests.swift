@@ -313,4 +313,19 @@ extension StoreTests {
         XCTAssertTrue(reloaded.openItems.isEmpty)
         XCTAssertEqual(reloaded.history.map(\.title), ["checked before quit"])
     }
+
+    func testReloadedItemArchivesWhenItsOwnUndoTimeIsOver() async throws {
+        let store = Store(fileURL: fileURL, archiveDelay: 2)
+        let id = store.add(title: "checked before quit")
+        store.toggle(id)
+
+        try await Task.sleep(for: .seconds(1.5))
+        let reloaded = Store(fileURL: fileURL, archiveDelay: 2)
+        XCTAssertEqual(reloaded.openItems.map(\.title), ["checked before quit"])
+
+        // About 0.5 seconds of undo time was left, not a full 2 seconds.
+        try await Task.sleep(for: .seconds(1.2))
+        XCTAssertTrue(reloaded.openItems.isEmpty)
+        XCTAssertEqual(reloaded.history.map(\.title), ["checked before quit"])
+    }
 }

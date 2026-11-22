@@ -71,13 +71,12 @@ final class Store {
         save()
 
         if items[index].isDone {
-            scheduleArchive()
+            scheduleArchive(after: archiveDelay)
         }
     }
 
-    /// Moves the clock on once the undo time is over, so checked items leave the list.
-    private func scheduleArchive() {
-        let delay = archiveDelay
+    /// Moves the clock on after the given seconds, so checked items leave the list.
+    private func scheduleArchive(after delay: TimeInterval) {
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(delay))
             clock = Date()
@@ -127,8 +126,12 @@ final class Store {
             return
         }
         items = saved.filter { !$0.title.isEmpty }
-        if items.contains(where: { $0.isDone && !isArchived($0, at: clock) }) {
-            scheduleArchive()
+        // Wait only for the undo time that is left on the most recently checked item.
+        let pending = items.filter { $0.isDone && !isArchived($0, at: clock) }.compactMap(\.completedAt)
+        if let latest = pending.max() {
+            let left = latest.addingTimeInterval(archiveDelay).timeIntervalSince(clock)
+            // A clock set back since quitting must not keep the item waiting longer than the undo time.
+            scheduleArchive(after: min(left, archiveDelay))
         }
     }
 
