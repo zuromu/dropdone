@@ -135,11 +135,10 @@ final class Store {
         for index in items.indices where (items[index].completedAt ?? .distantPast) > clock {
             items[index].completedAt = clock
         }
-        // Wait only for the undo time that is left on the most recently checked item.
+        // Each checked item waits only for the undo time it has left, not for the most recent one.
         let pending = items.filter { $0.isDone && !isArchived($0, at: clock) }.compactMap(\.completedAt)
-        if let latest = pending.max() {
-            let left = latest.addingTimeInterval(archiveDelay).timeIntervalSince(clock)
-            scheduleArchive(after: left)
+        for finished in pending {
+            scheduleArchive(after: finished.addingTimeInterval(archiveDelay).timeIntervalSince(clock))
         }
     }
 
