@@ -70,6 +70,14 @@ final class StorePersistenceTests: XCTestCase {
         XCTAssertEqual(Store(fileURL: fileURL).items.map(\.title), ["keep"])
     }
 
+    func testRenameWithPastedLinesIsSavedAsOneLine() {
+        let store = Store(fileURL: fileURL)
+        let id = store.add()
+        store.rename(id, to: "Buy  milk\r\n\n  eggs\nbread ")
+
+        XCTAssertEqual(Store(fileURL: fileURL).items.map(\.title), ["Buy  milk eggs bread"])
+    }
+
     func testUnreadableFileReplacesExistingBackup() throws {
         try FileManager.default.createDirectory(
             at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true

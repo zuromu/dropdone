@@ -13,6 +13,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - An items file that cannot be read is kept as items.json.bak instead of being overwritten
 - Open at login no longer switches itself off while waiting for approval, and shows its real state when the panel opens
 - A rename in progress is saved when you switch rows, add an item, or open History
+- Pasting several lines into an item keeps it on one line, so History no longer hides all but the first
 - An item checked off right before quitting still moves to History when you reopen the app
 - An item checked off right before quitting only waits out the rest of its undo time after you reopen the app
 - Adding an item to a long list scrolls the new row into view

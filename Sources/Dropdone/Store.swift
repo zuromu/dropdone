@@ -83,9 +83,12 @@ final class Store {
         }
     }
 
-    /// Renames an item. An empty name removes the item.
+    /// Renames an item. An empty name removes the item, and pasted lines are joined into one.
     func rename(_ id: Item.ID, to title: String) {
-        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = title.split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         if trimmed.isEmpty {
             items.remove(at: index)
