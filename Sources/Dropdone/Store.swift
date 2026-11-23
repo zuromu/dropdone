@@ -128,10 +128,10 @@ final class Store {
             return
         }
         items = saved.filter { !$0.title.isEmpty }
-        // Wait only for the undo time that is left on the most recently checked item.
+        // Each checked item waits only for the undo time it has left, not for the most recent one.
         let pending = items.filter { $0.isDone && !isArchived($0, at: clock) }.compactMap(\.completedAt)
-        if let latest = pending.max() {
-            let left = latest.addingTimeInterval(archiveDelay).timeIntervalSince(clock)
+        for finished in pending {
+            let left = finished.addingTimeInterval(archiveDelay).timeIntervalSince(clock)
             // A clock set back since quitting must not keep the item waiting longer than the undo time.
             scheduleArchive(after: min(left, archiveDelay))
         }

@@ -18,6 +18,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - Adding an item to a long list scrolls the new row into view
 - Turning on Open at login takes you to Login Items when the system needs your approval, even if the first attempt reports an error
 - A rename in progress is also saved when you check off that row or quit the app
+- After reopening the app, each checked item moves to History when its own undo time is over, instead of waiting for the last one checked
 
 ## [0.3.0]
 
