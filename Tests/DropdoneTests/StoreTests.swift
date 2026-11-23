@@ -370,4 +370,20 @@ extension StoreTests {
         XCTAssertTrue(reloaded.openItems.isEmpty)
         XCTAssertEqual(reloaded.history.map(\.title), ["checked before quit"])
     }
+
+    func testItemCheckedBeforeClockWentBackStillArchives() async throws {
+        // The Mac's clock was set back an hour after this item was checked.
+        let saved = [Item(title: "checked later", isDone: true, completedAt: Date().addingTimeInterval(3600))]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(saved).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL, archiveDelay: 0.1)
+        XCTAssertEqual(store.openItems.map(\.title), ["checked later"])
+
+        try await Task.sleep(for: .seconds(0.6))
+        XCTAssertTrue(store.openItems.isEmpty)
+        XCTAssertEqual(store.history.map(\.title), ["checked later"])
+    }
 }
