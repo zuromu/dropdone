@@ -78,6 +78,45 @@ final class StorePersistenceTests: XCTestCase {
         XCTAssertEqual(Store(fileURL: fileURL).items.map(\.title), ["Buy  milk eggs bread"])
     }
 
+    func testFinishDatesAheadOfTheClockAreKept() throws {
+        // The Mac started with its clock set back, so both items look like they were finished later than now.
+        let now = Date()
+        let saved = [
+            Item(title: "older", isDone: true, completedAt: now.addingTimeInterval(3600)),
+            Item(title: "newer", isDone: true, completedAt: now.addingTimeInterval(7200)),
+        ]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(saved).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL)
+        store.add(title: "new item")
+
+        let onDisk = try JSONDecoder().decode([Item].self, from: Data(contentsOf: fileURL))
+        XCTAssertEqual(onDisk.map(\.completedAt), saved.map(\.completedAt) + [nil])
+    }
+
+    func testEachReloadedItemArchivesWhenItsOwnUndoTimeIsOver() async throws {
+        let now = Date()
+        let saved = [
+            Item(title: "checked first", isDone: true, completedAt: now.addingTimeInterval(-57)),
+            Item(title: "checked second", isDone: true, completedAt: now),
+        ]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(saved).write(to: fileURL)
+
+        let store = Store(fileURL: fileURL, archiveDelay: 60)
+        XCTAssertEqual(store.openItems.map(\.title), ["checked first", "checked second"])
+
+        // The first item had about 3 seconds left, so it must not wait for the second one.
+        try await Task.sleep(for: .seconds(5))
+        XCTAssertEqual(store.openItems.map(\.title), ["checked second"])
+        XCTAssertEqual(store.history.map(\.title), ["checked first"])
+    }
+
     func testUnreadableFileReplacesExistingBackup() throws {
         try FileManager.default.createDirectory(
             at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true

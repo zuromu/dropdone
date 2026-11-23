@@ -14,6 +14,8 @@ final class Store {
 
     @ObservationIgnored private let fileURL: URL
     @ObservationIgnored private let archiveDelay: TimeInterval
+    /// When the undo time restarted, for saved items with a finish date ahead of the clock.
+    @ObservationIgnored private var undoRestarts: [Item.ID: Date] = [:]
 
     init(fileURL: URL = Store.defaultFileURL, archiveDelay: TimeInterval = Store.archiveDelay) {
         self.fileURL = fileURL
@@ -49,8 +51,12 @@ final class Store {
     /// A checked item moves to history once the undo time has passed.
     func isArchived(_ item: Item, at now: Date) -> Bool {
         guard item.isDone else { return false }
-        guard let finished = item.completedAt else { return true }
-        return now.timeIntervalSince(finished) >= archiveDelay
+        guard let started = undoStart(of: item) else { return true }
+        return now.timeIntervalSince(started) >= archiveDelay
+    }
+
+    private func undoStart(of item: Item) -> Date? {
+        undoRestarts[item.id] ?? item.completedAt
     }
 
     // MARK: - Changing the list
@@ -68,6 +74,7 @@ final class Store {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         items[index].isDone.toggle()
         items[index].completedAt = items[index].isDone ? Date() : nil
+        undoRestarts[id] = nil
         save()
 
         if items[index].isDone {
@@ -132,13 +139,14 @@ final class Store {
         }
         items = saved.filter { !$0.title.isEmpty }
         // A clock set back since quitting must not keep the item waiting longer than the undo time.
-        for index in items.indices where (items[index].completedAt ?? .distantPast) > clock {
-            items[index].completedAt = clock
+        // Its real finish date is kept, because the clock may be wrong only for a moment after startup.
+        for item in items where (item.completedAt ?? .distantPast) > clock {
+            undoRestarts[item.id] = clock
         }
         // Each checked item waits only for the undo time it has left, not for the most recent one.
-        let pending = items.filter { $0.isDone && !isArchived($0, at: clock) }.compactMap(\.completedAt)
-        for finished in pending {
-            scheduleArchive(after: finished.addingTimeInterval(archiveDelay).timeIntervalSince(clock))
+        let pending = items.filter { $0.isDone && !isArchived($0, at: clock) }.compactMap(undoStart)
+        for started in Set(pending) {
+            scheduleArchive(after: started.addingTimeInterval(archiveDelay).timeIntervalSince(clock))
         }
     }
 
