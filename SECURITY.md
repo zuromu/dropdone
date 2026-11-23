@@ -12,4 +12,4 @@ Use GitHub's private reporting instead: go to the **Security** tab of this repos
 
 ## What the app touches
 
-Dropdone only reads and writes one file, `~/Library/Application Support/Dropdone/items.json`. It does not use the network.
+Dropdone reads and writes one file, `~/Library/Application Support/Dropdone/items.json`. If that file cannot be read, it is moved to `items.json.bak` in the same folder so the old list is not overwritten. Turning on Open at login adds Dropdone to the system's login items. It does not use the network.
