@@ -66,7 +66,7 @@ Saving an item with an empty name removes it. Your list is saved automatically i
 
 1. Download the latest zip from the [Releases](https://github.com/zuromu/dropdone/releases/latest) page.
 2. Unzip it and drag `Dropdone.app` into your Applications folder.
-3. The app is not signed with an Apple Developer certificate yet, so the first time you open it, right click the app and choose **Open**.
+3. The app is not signed with an Apple Developer certificate yet, so macOS blocks it the first time you open it. Close that message, go to System Settings > Privacy & Security, scroll down to Security and click **Open Anyway**, then confirm, with your password if macOS asks for it. The button is there for about an hour after you try to open the app.
 
 Requires macOS 26 (Tahoe) or newer.
 
