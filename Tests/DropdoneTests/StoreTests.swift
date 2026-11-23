@@ -372,20 +372,22 @@ extension StoreTests {
     }
 
     func testEachReloadedItemArchivesWhenItsOwnUndoTimeIsOver() async throws {
-        let store = Store(fileURL: fileURL, archiveDelay: 3)
-        let first = store.add(title: "checked first")
-        store.toggle(first)
+        let now = Date()
+        let saved = [
+            Item(title: "checked first", isDone: true, completedAt: now.addingTimeInterval(-57)),
+            Item(title: "checked second", isDone: true, completedAt: now),
+        ]
+        try FileManager.default.createDirectory(
+            at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        try JSONEncoder().encode(saved).write(to: fileURL)
 
-        try await Task.sleep(for: .seconds(2.5))
-        let second = store.add(title: "checked second")
-        store.toggle(second)
+        let store = Store(fileURL: fileURL, archiveDelay: 60)
+        XCTAssertEqual(store.openItems.map(\.title), ["checked first", "checked second"])
 
-        let reloaded = Store(fileURL: fileURL, archiveDelay: 3)
-        XCTAssertEqual(reloaded.openItems.map(\.title), ["checked first", "checked second"])
-
-        // The first item had about 0.5 seconds left, so it must not wait for the second one.
-        try await Task.sleep(for: .seconds(1.5))
-        XCTAssertEqual(reloaded.openItems.map(\.title), ["checked second"])
-        XCTAssertEqual(reloaded.history.map(\.title), ["checked first"])
+        // The first item had about 3 seconds left, so it must not wait for the second one.
+        try await Task.sleep(for: .seconds(5))
+        XCTAssertEqual(store.openItems.map(\.title), ["checked second"])
+        XCTAssertEqual(store.history.map(\.title), ["checked first"])
     }
 }
