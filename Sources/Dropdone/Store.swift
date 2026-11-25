@@ -14,6 +14,8 @@ final class Store {
 
     @ObservationIgnored private let fileURL: URL
     @ObservationIgnored private let archiveDelay: TimeInterval
+    /// When the undo time restarted, for saved items with a finish date ahead of the clock.
+    @ObservationIgnored private var undoRestarts: [Item.ID: Date] = [:]
 
     init(fileURL: URL = Store.defaultFileURL, archiveDelay: TimeInterval = Store.archiveDelay) {
         self.fileURL = fileURL
@@ -49,8 +51,12 @@ final class Store {
     /// A checked item moves to history once the undo time has passed.
     func isArchived(_ item: Item, at now: Date) -> Bool {
         guard item.isDone else { return false }
-        guard let finished = item.completedAt else { return true }
-        return now.timeIntervalSince(finished) >= archiveDelay
+        guard let started = undoStart(of: item) else { return true }
+        return now.timeIntervalSince(started) >= archiveDelay
+    }
+
+    private func undoStart(of item: Item) -> Date? {
+        undoRestarts[item.id] ?? item.completedAt
     }
 
     // MARK: - Changing the list
@@ -68,6 +74,7 @@ final class Store {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         items[index].isDone.toggle()
         items[index].completedAt = items[index].isDone ? Date() : nil
+        undoRestarts[id] = nil
         save()
 
         if items[index].isDone {
@@ -83,9 +90,12 @@ final class Store {
         }
     }
 
-    /// Renames an item. An empty name removes the item.
+    /// Renames an item. An empty name removes the item, and pasted lines are joined into one.
     func rename(_ id: Item.ID, to title: String) {
-        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = title.split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         if trimmed.isEmpty {
             items.remove(at: index)
@@ -128,12 +138,15 @@ final class Store {
             return
         }
         items = saved.filter { !$0.title.isEmpty }
-        // Wait only for the undo time that is left on the most recently checked item.
-        let pending = items.filter { $0.isDone && !isArchived($0, at: clock) }.compactMap(\.completedAt)
-        if let latest = pending.max() {
-            let left = latest.addingTimeInterval(archiveDelay).timeIntervalSince(clock)
-            // A clock set back since quitting must not keep the item waiting longer than the undo time.
-            scheduleArchive(after: min(left, archiveDelay))
+        // A clock set back since quitting must not keep the item waiting longer than the undo time.
+        // Its real finish date is kept, because the clock may be wrong only for a moment after startup.
+        for item in items where (item.completedAt ?? .distantPast) > clock {
+            undoRestarts[item.id] = clock
+        }
+        // Each checked item waits only for the undo time it has left, not for the most recent one.
+        let pending = items.filter { $0.isDone && !isArchived($0, at: clock) }.compactMap(undoStart)
+        for started in Set(pending) {
+            scheduleArchive(after: started.addingTimeInterval(archiveDelay).timeIntervalSince(clock))
         }
     }
 
