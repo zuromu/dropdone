@@ -7,19 +7,26 @@ import SwiftUI
 final class Store {
     private(set) var items: [Item] = []
     /// Updated when the undo time runs out, so the views refresh.
-    private(set) var clock = Date()
+    private(set) var clock: Date
 
     /// Seconds a checked item stays in the list, so a wrong click can be undone.
     static let archiveDelay: TimeInterval = 5
 
     @ObservationIgnored private let fileURL: URL
     @ObservationIgnored private let archiveDelay: TimeInterval
+    @ObservationIgnored private let now: () -> Date
     /// When the undo time restarted, for saved items with a finish date ahead of the clock.
     @ObservationIgnored private var undoRestarts: [Item.ID: Date] = [:]
 
-    init(fileURL: URL = Store.defaultFileURL, archiveDelay: TimeInterval = Store.archiveDelay) {
+    init(
+        fileURL: URL = Store.defaultFileURL,
+        archiveDelay: TimeInterval = Store.archiveDelay,
+        now: @escaping () -> Date = Date.init
+    ) {
         self.fileURL = fileURL
         self.archiveDelay = archiveDelay
+        self.now = now
+        clock = now()
         load()
     }
 
@@ -73,7 +80,7 @@ final class Store {
     func toggle(_ id: Item.ID) {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         items[index].isDone.toggle()
-        items[index].completedAt = items[index].isDone ? Date() : nil
+        items[index].completedAt = items[index].isDone ? now() : nil
         undoRestarts[id] = nil
         save()
 
@@ -86,8 +93,24 @@ final class Store {
     private func scheduleArchive(after delay: TimeInterval) {
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(delay))
-            clock = Date()
+            clock = now()
+            if restartUndoAheadOfClock() {
+                scheduleArchive(after: archiveDelay)
+            }
         }
+    }
+
+    /// A clock set back must not keep a checked item waiting longer than the undo time, so its undo time
+    /// starts again now. Its real finish date is kept, because the clock may be wrong only for a moment.
+    @discardableResult
+    private func restartUndoAheadOfClock() -> Bool {
+        var restarted = false
+        for item in items where item.isDone && undoRestarts[item.id] == nil {
+            guard let finished = item.completedAt, finished > clock else { continue }
+            undoRestarts[item.id] = clock
+            restarted = true
+        }
+        return restarted
     }
 
     /// Renames an item. An empty name removes the item, and pasted lines are joined into one.
@@ -138,11 +161,7 @@ final class Store {
             return
         }
         items = saved.filter { !$0.title.isEmpty }
-        // A clock set back since quitting must not keep the item waiting longer than the undo time.
-        // Its real finish date is kept, because the clock may be wrong only for a moment after startup.
-        for item in items where (item.completedAt ?? .distantPast) > clock {
-            undoRestarts[item.id] = clock
-        }
+        restartUndoAheadOfClock()
         // Each checked item waits only for the undo time it has left, not for the most recent one.
         let pending = items.filter { $0.isDone && !isArchived($0, at: clock) }.compactMap(undoStart)
         for started in Set(pending) {
