@@ -131,4 +131,22 @@ final class StorePersistenceTests: XCTestCase {
         XCTAssertEqual(try String(contentsOf: backup, encoding: .utf8), "newer broken")
         XCTAssertEqual(Store(fileURL: fileURL).items.map(\.title), ["Fresh"])
     }
+
+    func testCheckedItemArchivesAfterClockIsSetBackWhileRunning() async throws {
+        var current = Date()
+        let store = Store(fileURL: fileURL, archiveDelay: 0.5, now: { current })
+        let id = store.add(title: "checked, then clock back")
+        store.toggle(id)
+
+        // The Mac's clock is set back an hour before the undo timer fires.
+        current = current.addingTimeInterval(-3600)
+        try await Task.sleep(for: .seconds(0.7))
+        XCTAssertEqual(store.openItems.map(\.title), ["checked, then clock back"])
+
+        // The undo time starts again at the new clock, so one undo time later it is archived.
+        current = current.addingTimeInterval(0.6)
+        try await Task.sleep(for: .seconds(0.8))
+        XCTAssertTrue(store.openItems.isEmpty)
+        XCTAssertEqual(store.history.map(\.title), ["checked, then clock back"])
+    }
 }
