@@ -12,6 +12,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - Clear in History also removes an item you checked a moment ago
 - Command-comma no longer opens an empty Settings window
 - A checked item still moves to History if the Mac clock is set back while the app is running
+- Checking an item after the Mac clock is set back still gives the undo time, and finished items stay in History
 - An items file that cannot be read is kept as items.json.bak instead of being overwritten
 - Open at login no longer switches itself off while waiting for approval, and shows its real state when the panel opens
 - A rename in progress is saved when you switch rows, add an item, or open History
