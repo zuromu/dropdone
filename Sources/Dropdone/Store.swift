@@ -15,8 +15,11 @@ final class Store {
     @ObservationIgnored private let fileURL: URL
     @ObservationIgnored private let archiveDelay: TimeInterval
     @ObservationIgnored private let now: () -> Date
-    /// When the undo time restarted, for saved items with a finish date ahead of the clock.
+    /// Items already in History this session, so a clock set back does not pull them back into the list.
+    @ObservationIgnored private var archivedIDs: Set<Item.ID> = []
+    /// When the undo time restarted, for checked items whose undo start is ahead of the clock.
     @ObservationIgnored private var undoRestarts: [Item.ID: Date] = [:]
+    @ObservationIgnored private var archiveTask: Task<Void, Never>?
 
     init(
         fileURL: URL = Store.defaultFileURL,
@@ -28,6 +31,10 @@ final class Store {
         self.now = now
         clock = now()
         load()
+    }
+
+    deinit {
+        archiveTask?.cancel()
     }
 
     /// ~/Library/Application Support/Dropdone/items.json
@@ -58,6 +65,9 @@ final class Store {
     /// A checked item moves to history once the undo time has passed.
     func isArchived(_ item: Item, at now: Date) -> Bool {
         guard item.isDone else { return false }
+        if archivedIDs.contains(item.id) {
+            return true
+        }
         guard let started = undoStart(of: item) else { return true }
         return now.timeIntervalSince(started) >= archiveDelay
     }
@@ -79,38 +89,62 @@ final class Store {
 
     func toggle(_ id: Item.ID) {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+        archiveReadyItems(at: clock)
         items[index].isDone.toggle()
-        items[index].completedAt = items[index].isDone ? now() : nil
+        let current = now()
+        items[index].completedAt = items[index].isDone ? current : nil
+        archivedIDs.remove(id)
         undoRestarts[id] = nil
+        clock = current
+        archiveReadyItems(at: clock)
+        restartUndoAheadOfClock()
         save()
+        scheduleNextArchive()
+    }
 
-        if items[index].isDone {
-            scheduleArchive(after: archiveDelay)
+    /// Moves the clock on when the soonest checked item finishes its undo time.
+    private func scheduleNextArchive() {
+        archiveTask?.cancel()
+        archiveTask = nil
+        let nextDelay = items
+            .filter { $0.isDone && !isArchived($0, at: clock) }
+            .compactMap(undoStart)
+            .map { $0.addingTimeInterval(archiveDelay).timeIntervalSince(clock) }
+            .min()
+        guard let nextDelay else { return }
+        archiveTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(max(nextDelay, 0)))
+            guard !Task.isCancelled, let self else { return }
+            archiveTask = nil
+            syncClock()
+            scheduleNextArchive()
         }
     }
 
-    /// Moves the clock on after the given seconds, so checked items leave the list.
-    private func scheduleArchive(after delay: TimeInterval) {
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(delay))
-            clock = now()
-            if restartUndoAheadOfClock() {
-                scheduleArchive(after: archiveDelay)
-            }
+    /// Moves the clock to now while keeping archived items in History and restarting
+    /// any pending undo time whose start ended up ahead of the clock.
+    private func syncClock() {
+        archiveReadyItems(at: clock)
+        clock = now()
+        archiveReadyItems(at: clock)
+        restartUndoAheadOfClock()
+    }
+
+    /// Remembers items that have moved to History so setting the clock back does not pull them back out.
+    private func archiveReadyItems(at time: Date) {
+        for item in items where isArchived(item, at: time) {
+            archivedIDs.insert(item.id)
+            undoRestarts[item.id] = nil
         }
     }
 
     /// A clock set back must not keep a checked item waiting longer than the undo time, so its undo time
     /// starts again now. Its real finish date is kept, because the clock may be wrong only for a moment.
-    @discardableResult
-    private func restartUndoAheadOfClock() -> Bool {
-        var restarted = false
-        for item in items where item.isDone && undoRestarts[item.id] == nil {
-            guard let finished = item.completedAt, finished > clock else { continue }
+    private func restartUndoAheadOfClock() {
+        for item in items where item.isDone && !archivedIDs.contains(item.id) {
+            guard let started = undoStart(of: item), started > clock else { continue }
             undoRestarts[item.id] = clock
-            restarted = true
         }
-        return restarted
     }
 
     /// Renames an item. An empty name removes the item, and pasted lines are joined into one.
@@ -122,6 +156,10 @@ final class Store {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         if trimmed.isEmpty {
             items.remove(at: index)
+            archivedIDs.remove(id)
+            undoRestarts[id] = nil
+            syncClock()
+            scheduleNextArchive()
         } else {
             items[index].title = trimmed
         }
@@ -130,12 +168,19 @@ final class Store {
 
     func delete(_ id: Item.ID) {
         items.removeAll { $0.id == id }
+        archivedIDs.remove(id)
+        undoRestarts[id] = nil
+        syncClock()
+        scheduleNextArchive()
         save()
     }
 
     /// Removes every finished item for good, including one checked a moment ago. Open items stay.
     func clearHistory() {
         items.removeAll { $0.isDone }
+        archivedIDs.removeAll()
+        undoRestarts.removeAll()
+        scheduleNextArchive()
         save()
     }
 
@@ -161,12 +206,9 @@ final class Store {
             return
         }
         items = saved.filter { !$0.title.isEmpty }
+        archiveReadyItems(at: clock)
         restartUndoAheadOfClock()
-        // Each checked item waits only for the undo time it has left, not for the most recent one.
-        let pending = items.filter { $0.isDone && !isArchived($0, at: clock) }.compactMap(undoStart)
-        for started in Set(pending) {
-            scheduleArchive(after: started.addingTimeInterval(archiveDelay).timeIntervalSince(clock))
-        }
+        scheduleNextArchive()
     }
 
     private func save() {
